@@ -1,0 +1,176 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.MLAgents;
+using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Sensors;
+using UnityEngine;
+
+public class NewBehaviourScript : Agent
+{
+    // float[] w= new float[] { 1,1,1};//가중치
+    float[] cot = new float[] { 0, 0, 0 };//[특정행동(마우스클릭)에 대한 선호도, 음식 받기/주기/공격 순서 -1~1
+    float atat; //마우스 물체에 대한 강도
+    float essense = 100;//강화/판단 지표
+    float pyisc = 100;//
+    float currentHealth = 100f;
+    float currentSanity = 100f;
+    MouseFollower ms;
+    Renderer sp;
+    langh l;
+    public Transform player;
+    bool interact = false;//상호작용
+    public string get_state;
+    float le;
+    private float lastDistance; // 마지막으로 측정한 플레이어와의 거리
+
+    void Start()
+    {
+        ms = gameObject.GetComponent<MouseFollower> ();
+        sp = gameObject.GetComponent<SpriteRenderer>();
+        l = gameObject.GetComponent<langh>();
+        if (l != null)
+        {
+            le = l.distance;//거리
+        }
+    }
+
+    public override void OnEpisodeBegin()
+    {
+        // 에이전트 상태 초기화
+        currentHealth = 100f;
+        currentSanity = 100f;
+        // 위치 초기화 (필요하다면)
+        // transform.localPosition = new Vector3(0, 0.5f, 0);
+        if (player != null)
+        {
+            lastDistance = Vector2.Distance(transform.position, player.position);
+        }
+    }
+
+    public override void CollectObservations(VectorSensor sensor)
+    {
+        // 1. 자신의 상태 관찰
+        sensor.AddObservation(currentHealth);
+        sensor.AddObservation(currentSanity);
+
+        if (player != null)
+        {
+            // 2. 플레이어와의 관계 관찰
+            float currentDistance = Vector2.Distance(transform.position, player.position);
+            sensor.AddObservation(currentDistance);
+            // 플레이어가 자신에게서 멀어지고 있는지 판단하기 위한 정보
+            sensor.AddObservation(lastDistance - currentDistance);
+            lastDistance = currentDistance;
+        }
+        else
+        {
+            // player가 할당되지 않았을 경우 기본값 전송
+            sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
+        }
+    }
+
+    public override void OnActionReceived(ActionBuffers actionBuffers)
+    {
+        int action = actionBuffers.DiscreteActions[0];
+
+        if (/*거리가 충분한지*/action!=null) {
+            
+
+
+            switch (action)
+            {
+                case 0: // 행동 0: 음식 주기
+                    Debug.Log("음식을 주는 행동을 합니다.");
+                    tow(1);
+                    StartCoroutine(feed("given", 0));
+                    break;
+                case 1: // 행동 1: 재주 부리기
+                    Debug.Log("재주를 부립니다.");
+                    tow(1);
+                    StartCoroutine(feed("chiahoya", 1));
+                    break;
+                case 2: // 행동 2: 공격하기
+                    Debug.Log("공격합니다.");
+                    tow(-1);
+                    StartCoroutine(feed("att", 2));
+                    break;
+
+            }
+        }
+        // 행동 자체에 대한 약간의 부정적 보상을 주어 효율적인 학습 유도
+        SetReward(-0.001f);
+    }
+
+    /// <summary>
+    /// 플레이어와의 상호작용에 의해 외부에서 호출되는 함수
+    /// </summary>
+    public void GiveFood(float amount)
+    {
+        currentHealth += amount;
+        Debug.Log("플레이어로부터 음식을 받아 체력이 회복되었습니다.");
+        // 음식을 준 것에 대해 큰 양의 보상 부여
+        SetReward(0.5f);
+        interact = true;
+        get_state = "given";
+    }
+
+    /// <summary>
+    /// 플레이어의 재주에 대한 반응을 처리하는 함수
+    /// </summary>
+    public void ReactToTrick(float amount)
+    {
+        currentSanity += amount;
+        Debug.Log("플레이어의 재주에 정신력이 회복되었습니다.");
+        // 재주에 반응한 것에 대해 큰 양의 보상 부여
+        SetReward(1.0f);
+        interact = true;
+        get_state = "chiahoya";
+    }
+
+    void tow(int a)
+    {
+        if (a > 0)
+        {
+            // 긍정적 행동
+        }
+        else
+        {
+            // 부정적 행동 (플레이어와의 거리가 특정 이상 벌어질때 실행)
+        }
+    }
+
+    IEnumerator feed(string expact, int a)
+    {
+        float startTime = Time.time;
+
+        yield return new WaitUntil(() => interact || Time.time >= startTime + 5f);
+
+        if (interact) // 버그 수정: 할당(=)이 아닌 비교(==) 또는 bool값 직접 사용
+        {
+            interact = false; // 상태 초기화
+        }
+
+        if (get_state == expact)
+        {
+            get_state = "non";
+            SetReward(cot[a]);
+            //if(cot[2] > 15){ 확신도}
+            cot[a] = cot[a] + 0.05f;
+        }
+        else
+        {
+            // 버그 수정: 'ic'는 선언되지 않은 변수. 문맥상 'cot[2]'로 추정됨.
+            if (a == 2 && cot[2] > 15)
+            {
+                //화나는 모션과 공격
+                SetReward(1.2f);
+            }
+            else
+            {
+                SetReward(cot[a]);
+                cot[a] = cot[a] - 0.15f;
+            }
+        }
+    }
+}
