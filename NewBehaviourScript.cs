@@ -34,7 +34,7 @@ public class NewBehaviourScript : MonoBehaviour
 
     [Header("Value System")]
     public float valueInfluence = 0.5f; // 학습된 가치가 태도에 미치는 영향력
-    private Dictionary<string, float> learnedValues = new Dictionary<string, float>();
+    Dictionary<string, float> learnedValues = new Dictionary<string, float>();
 
     [Header("Visuals")]
     public Color neutralColor = Color.white;

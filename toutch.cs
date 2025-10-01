@@ -14,16 +14,16 @@ public class toutch : MonoBehaviour
 
     // 필요한 컴포넌트
     //단기적인 자극에 대한 반응 ex-아무리 사이가 좋아도 맞으면 한동안 회피를 하는 상태(negatuve on)가 됨, 어느정도 학습이 된다면 
-    private Rigidbody2D rb;
+ //   private Rigidbody2D rb;
     string rec = "";
 
     int a = 0;
-    NewBehaviourScript mcu;
+    //NewBehaviourScript mcu;
     void Start()
     {
-        mcu = GetComponent<NewBehaviourScript>();
+   //     mcu = GetComponent<NewBehaviourScript>();
         // Rigidbody2D 컴포넌트 가져오기
-        rb = GetComponent<Rigidbody2D>();
+     //   rb = GetComponent<Rigidbody2D>();
     }
     void Update()
     {

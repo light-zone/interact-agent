@@ -11,11 +11,11 @@ public class MouseFollower : MonoBehaviour
 
     [Tooltip("TakeDamage 함수에 전달할 공격력")]
     public float attackDamage = 10f;
-
+    float petHealAmount =10f;
     private Camera mainCamera;
     private bool isAttackMode = false;
     private SpriteRenderer spriteRenderer;
-    int n=0;
+    public int n=0;
     void Start()
     {
         mainCamera = Camera.main;
@@ -36,14 +36,14 @@ public class MouseFollower : MonoBehaviour
         {
             n = 1;
             if (spriteRenderer != null) spriteRenderer.color = Color.red; // 공격 모드일 때 빨간색으로 변경
-        }else if (Input.GetButtonDown("space"))
+        }/*else if (Input.GetButtonDown("space"))
         {
             n = 2;
         }
         else
         {
             n = 0;
-        }
+        }*/
         if (Input.GetMouseButtonUp(1)) // 우클릭 뗄 때
         {
             isAttackMode = false;
@@ -58,10 +58,7 @@ public class MouseFollower : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // 공격 모드가 아니거나, 부딪힌 상대가 NewBehaviourScript를 가지고 있지 않으면 무시
-        if (collision.gameObject.GetComponent<NewBehaviourScript>() == null)
-        {
-            return;
-        }
+      
 
         Debug.Log(collision.gameObject.name + interactionFunctionNames[n]);
 
@@ -69,7 +66,9 @@ public class MouseFollower : MonoBehaviour
       //  foreach (string functionName in interactionFunctionNames)
         //{
             // SendMessage를 사용해 이름으로 함수를 호출하고, attackDamage 값을 전달합니다.
-         collision.gameObject.SendMessage(interactionFunctionNames[n], attackDamage, SendMessageOptions.DontRequireReceiver);
+         //float valueToSend = (n == 1) ? attackDamage : petHealAmount;
+        float valueToSend = (n == 1) ? attackDamage : petHealAmount;
+        collision.gameObject.SendMessage(interactionFunctionNames[n], valueToSend, SendMessageOptions.DontRequireReceiver);
         if (n==1)
         {
         //    collision.Rigidbody2D.AddForce(Vector2.toward, ForceMode.Impulse);
